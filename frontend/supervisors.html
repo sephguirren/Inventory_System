@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supervisors | Celesté & Co.</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <script src="js/api.js"></script>
+    <script>
+        Auth.requireLogin();
+        const currentUser = Auth.getUser();
+        
+        // BOUNCER: Only Superadmins can manage staff!
+        if (currentUser.role !== 'Superadmin') {
+            alert("Security Alert: You do not have clearance to access Staff Management.");
+            window.location.replace('dashboard.html');
+        }
+
+        let globalStaff = [];
+    </script>
+
+    <style>
+        :root {
+            --dark-sidebar: #0B0E14;
+            --bg-body: #F4F7FE;
+        }
+        body { background-color: var(--bg-body); font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        
+        .sidebar { width: 260px; height: 100vh; background: var(--dark-sidebar); position: fixed; padding: 25px; color: white; z-index: 1000; }
+        .sidebar .nav-link { color: #8B949E; padding: 12px; border-radius: 10px; margin-bottom: 8px; transition: 0.2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #1C212C; color: #FFFFFF; }
+        
+        .main-content { margin-left: 260px; padding: 30px; }
+        
+        /* Table Styling */
+        .table-card { background: white; border-radius: 20px; border: none; padding: 25px; }
+        .table-custom thead { color: #A3AED0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .table-custom tbody { font-size: 14px; font-weight: 600; color: #2B3674; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #E9EFFF; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h4 class="fw-bold mb-5">CELESTÉ & CO.</h4>
+    <nav class="nav flex-column" id="dynamic-nav">
+        <a class="nav-link" href="dashboard.html"><i class="bi bi-grid-fill me-3"></i> Dashboard</a>
+        <a class="nav-link" href="orders.html"><i class="bi bi-cart-fill me-3"></i> Orders & POS</a>
+        <a class="nav-link" href="customers.html"><i class="bi bi-star-fill me-3"></i> VIP Customers</a>
+        <a class="nav-link" href="products.html"><i class="bi bi-bag-fill me-3"></i> Products</a>
+        <a class="nav-link" href="warehouses.html"><i class="bi bi-buildings-fill me-3"></i> Warehouse</a>
+        <a class="nav-link active" href="supervisors.html"><i class="bi bi-people-fill me-3"></i> Supervisors</a>
+    </nav>
+    <div class="position-absolute bottom-0 mb-4" style="width: 210px;">
+        <a href="#" onclick="performLogout(event)" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-3"></i> Log out</a>
+    </div>
+</div>
+
+<div class="main-content">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark">Staff Management</h3>
+        <div class="d-flex align-items-center bg-white p-2 px-3 rounded-pill shadow-sm">
+            <span class="fw-bold me-2" style="color: #2B3674;" id="display-name">Loading...</span>
+            <img id="display-avatar" src="" width="35" class="rounded-circle">
+        </div>
+    </div>
+
+    <div id="page-alert" class="alert d-none shadow-sm rounded-3 border-0 mb-4"></div>
+
+    <div class="table-card shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="fw-bold mb-1" style="color: #2B3674;">Active Supervisors</h5>
+                <p class="text-muted small mb-0">Manage system access and zone assignments for your staff.</p>
+            </div>
+            <button class="btn text-white fw-bold px-4 rounded-pill shadow-sm" style="background-color: #4318FF;" data-bs-toggle="modal" data-bs-target="#addSupervisorModal">
+                <i class="bi bi-person-plus-fill me-2"></i> Add Supervisor
+            </button>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Official Name</th>
+                        <th>Username</th>
+                        <th>Assigned Zone</th>
+                        <th>Last Active</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="staff-tbody">
+                    <tr><td colspan="5" class="text-center py-5 text-muted">Loading personnel data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addSupervisorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: #2B3674;">Register New Supervisor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addForm">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Full Name</label>
+                        <input type="text" id="add_fullname" class="form-control rounded-3" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Username</label>
+                        <input type="text" id="add_username" class="form-control rounded-3" placeholder="e.g. john_admin" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Temporary Password</label>
+                        <input type="password" id="add_password" class="form-control rounded-3" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">Assign to Warehouse</label>
+                        <select id="add_warehouse" class="form-select rounded-3">
+                            </select>
+                    </div>
+                    <button type="submit" id="addBtn" class="btn text-white w-100 fw-bold rounded-pill py-2" style="background-color: #4318FF;">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editSupervisorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: #2B3674;">Edit Supervisor Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editForm">
+                    <input type="hidden" id="edit_id">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Full Name</label>
+                        <input type="text" id="edit_fullname" class="form-control rounded-3" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Username</label>
+                        <input type="text" id="edit_username" class="form-control rounded-3" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">Re-assign Warehouse</label>
+                        <select id="edit_warehouse" class="form-select rounded-3">
+                            </select>
+                    </div>
+                    <button type="submit" id="editBtn" class="btn text-white w-100 fw-bold rounded-pill py-2" style="background-color: #4318FF;">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // Setup User Profile
+        document.getElementById('display-name').innerText = currentUser.fullname;
+        document.getElementById('display-avatar').src = `https://ui-avatars.com/api/?name=${currentUser.fullname}&background=4318FF&color=fff`;
+
+        // Load initial data
+        loadSupervisors();
+
+        // 1. ADD Form Logic
+        document.getElementById('addForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('addBtn');
+            btn.innerHTML = "Processing..."; btn.disabled = true;
+
+            const payload = {
+                user_id: currentUser.id,
+                fullname: document.getElementById('add_fullname').value,
+                username: document.getElementById('add_username').value,
+                password: document.getElementById('add_password').value,
+                warehouse_id: document.getElementById('add_warehouse').value || null
+            };
+
+            fetch(`${API_BASE_URL}/supervisors`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('addSupervisorModal')).hide();
+                    document.getElementById('addForm').reset();
+                    showAlert("New official account created.", "success");
+                    loadSupervisors(); 
+                } else {
+                    showAlert("Failed to create account.", "danger");
+                }
+                btn.innerHTML = "Create Account"; btn.disabled = false;
+            });
+        });
+
+        // 2. EDIT Form Logic
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('editBtn');
+            btn.innerHTML = "Saving..."; btn.disabled = true;
+
+            const id = document.getElementById('edit_id').value;
+            const payload = {
+                user_id: currentUser.id,
+                fullname: document.getElementById('edit_fullname').value,
+                username: document.getElementById('edit_username').value,
+                warehouse_id: document.getElementById('edit_warehouse').value || null
+            };
+
+            fetch(`${API_BASE_URL}/supervisors/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('editSupervisorModal')).hide();
+                    showAlert("Profile updated successfully.", "success");
+                    loadSupervisors(); 
+                } else {
+                    showAlert("Failed to update profile.", "danger");
+                }
+                btn.innerHTML = "Update Profile"; btn.disabled = false;
+            });
+        });
+    });
+
+    // Fetch & Build Table
+    function loadSupervisors() {
+        fetch(`${API_BASE_URL}/supervisors`)
+            .then(res => res.json())
+            .then(res => {
+                if(res.success) {
+                    globalStaff = res.data;
+                    
+                    // Populate Warehouse Dropdowns for both Add and Edit modals
+                    if(res.warehouses) {
+                        let whHtml = '<option value="">-- Leave Unassigned --</option>';
+                        res.warehouses.forEach(w => whHtml += `<option value="${w.id}">${w.warehouse_name}</option>`);
+                        document.getElementById('add_warehouse').innerHTML = whHtml;
+                        document.getElementById('edit_warehouse').innerHTML = whHtml;
+                    }
+
+                    const tbody = document.getElementById('staff-tbody');
+                    tbody.innerHTML = '';
+
+                    if(globalStaff.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted">No supervisors found. Add a staff member to get started!</td></tr>`;
+                        return;
+                    }
+
+                    globalStaff.forEach(staff => {
+                        let whBadge = staff.warehouse_name ? staff.warehouse_name : 'Unassigned';
+                        let activeHtml = staff.last_active_fmt ? 
+                            `<small class="text-muted fw-semibold"><i class="bi bi-clock me-1"></i> ${staff.last_active_fmt}</small>` : 
+                            `<span class="badge bg-secondary">Never logged in</span>`;
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://ui-avatars.com/api/?name=${staff.fullname}&background=E9EFFF&color=4318FF" class="avatar me-3">
+                                        <div>
+                                            <span class="fw-bold text-dark d-block">${staff.fullname}</span>
+                                            <small class="text-muted">${staff.role}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@${staff.username}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border p-2 px-3 rounded-pill">${whBadge}</span>
+                                </td>
+                                <td>${activeHtml}</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-light border text-primary me-2" onclick="openEditModal(${staff.id})">
+                                        <i class="bi bi-pencil-fill"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-light border text-danger" onclick="deleteSupervisor(${staff.id}, '${staff.fullname.replace(/'/g, "\\'")}')">
+                                        <i class="bi bi-trash-fill"></i> Fire
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+    }
+
+    // Modal Trigger
+    function openEditModal(id) {
+        const staff = globalStaff.find(s => s.id === id);
+        if(staff) {
+            document.getElementById('edit_id').value = staff.id;
+            document.getElementById('edit_fullname').value = staff.fullname;
+            document.getElementById('edit_username').value = staff.username;
+            document.getElementById('edit_warehouse').value = staff.assigned_warehouse_id || "";
+            new bootstrap.Modal(document.getElementById('editSupervisorModal')).show();
+        }
+    }
+
+    // Delete Logic
+    function deleteSupervisor(id, name) {
+        if(confirm(`Are you sure you want to remove ${name}? They will lose all access to the system.`)) {
+            fetch(`${API_BASE_URL}/supervisors/${id}?user_id=${currentUser.id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    showAlert("Official removed successfully.", "success");
+                    loadSupervisors(); 
+                }
+            });
+        }
+    }
+
+    // Utility 
+    function showAlert(msg, type) {
+        const box = document.getElementById('page-alert');
+        box.className = `alert alert-${type} alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4`;
+        box.innerHTML = `<i class="bi bi-info-circle-fill me-2"></i> ${msg} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    }
+</script>
+
+</body>
+</html>
