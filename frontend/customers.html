@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VIP Clients | Celesté & Co.</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="js/api.js"></script>
+    <script>
+        Auth.requireLogin();
+        const currentUser = Auth.getUser();
+        if (currentUser.role !== 'Superadmin') window.location.replace('customers.html'); 
+        // Note: Even though both use 'customers.html' ideally they should use the same file, 
+        // but if you have a separate supervisor_customers.html you can change the redirect.
+    </script>
+    <style>
+        :root { --dark-sidebar: #0B0E14; --bg-body: #F4F7FE; }
+        body { background-color: var(--bg-body); font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        .sidebar { width: 260px; height: 100vh; background: var(--dark-sidebar); position: fixed; padding: 25px; color: white; z-index: 1000; }
+        .sidebar .nav-link { color: #8B949E; padding: 12px; border-radius: 10px; margin-bottom: 8px; transition: 0.2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #1C212C; color: #FFFFFF; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .table-card { background: white; border-radius: 20px; border: none; padding: 25px; }
+        .table-custom thead { color: #A3AED0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .table-custom tbody { font-size: 14px; font-weight: 600; color: #2B3674; }
+        
+        .badge-platinum { background: #E5E4E2; color: #1C212C; border: 1px solid #B0B4B4; padding: 6px 12px; border-radius: 8px; letter-spacing: 1px; font-size: 0.75rem; font-weight: 700; box-shadow: inset 0 1px 3px rgba(255,255,255,0.5); }
+        .badge-gold { background: #FFF8E5; color: #FFB547; border: 1px solid #FFE4A0; padding: 6px 12px; border-radius: 8px; letter-spacing: 1px; font-size: 0.75rem; font-weight: bold; }
+        .badge-silver { background: #F8F9FA; color: #8B949E; border: 1px solid #E2E8F0; padding: 6px 12px; border-radius: 8px; letter-spacing: 1px; font-size: 0.75rem; font-weight: bold; }
+        .badge-standard { background: #FFFFFF; color: #A3AED0; border: 1px dashed #E2E8F0; padding: 6px 12px; border-radius: 8px; letter-spacing: 1px; font-size: 0.75rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h4 class="fw-bold mb-5">CELESTÉ & CO.</h4>
+    <nav class="nav flex-column">
+        <a class="nav-link" href="dashboard.html"><i class="bi bi-grid-fill me-3"></i> Dashboard</a>
+        <a class="nav-link" href="orders.html"><i class="bi bi-cart-fill me-3"></i> Orders & POS</a>
+        <a class="nav-link active" href="customers.html"><i class="bi bi-star-fill me-3"></i> VIP Customers</a>
+        <a class="nav-link" href="products.html"><i class="bi bi-bag-fill me-3"></i> Products</a>
+        <a class="nav-link" href="warehouses.html"><i class="bi bi-buildings-fill me-3"></i> Warehouse</a>
+        <a class="nav-link" href="supervisors.html"><i class="bi bi-people-fill me-3"></i> Supervisors</a>
+    </nav>
+    <div class="position-absolute bottom-0 mb-4" style="width: 210px;">
+        <a href="#" onclick="performLogout(event)" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-3"></i> Log out</a>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-0">Global Client Directory</h3>
+            <p class="text-muted small">Manage client profiles and track VIP spending habits globally.</p>
+        </div>
+        <div class="d-flex align-items-center bg-white p-2 px-3 rounded-pill shadow-sm">
+            <span class="fw-bold me-2" style="color: #2B3674;" id="display-name">Loading...</span>
+            <img id="display-avatar" src="" width="35" class="rounded-circle">
+        </div>
+    </div>
+
+    <div class="table-card shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0" style="color: #2B3674;">Top Spending Clients</h5>
+            <div class="input-group overflow-hidden border rounded-pill" style="width: 300px; background: #F8F9FA;">
+                <span class="input-group-text bg-transparent border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="searchInput" class="form-control bg-transparent border-0 shadow-none small" placeholder="Search client name...">
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle">
+                <thead><tr><th>Client Profile</th><th>Client Tier</th><th class="text-center">Total Purchases</th><th>Lifetime Spend</th><th>Last Visit</th></tr></thead>
+                <tbody id="customers-tbody"><tr><td colspan="5" class="text-center py-5 text-muted">Loading client directory...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('display-name').innerText = currentUser.fullname;
+        document.getElementById('display-avatar').src = `https://ui-avatars.com/api/?name=${currentUser.fullname}&background=4318FF&color=fff`;
+
+        fetch(`${API_BASE_URL}/customers?role=Superadmin`)
+            .then(res => res.json()).then(res => {
+                if(res.success) {
+                    const tbody = document.getElementById('customers-tbody'); tbody.innerHTML = '';
+                    if(res.data.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted">No completed transactions found.</td></tr>`; return; }
+                    res.data.forEach(client => {
+                        let dateStr = client.last_visit ? `<span class="text-muted"><i class="bi bi-calendar3 me-1"></i> ${new Date(client.last_visit).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>` : '-';
+                        let spend = parseFloat(client.total_spent); let tierBadge = ''; let avatarTheme = 'background=E9EFFF&color=4318FF';
+                        if (spend >= 100000) { tierBadge = `<span class="badge-platinum"><i class="bi bi-gem me-1"></i> PLATINUM</span>`; avatarTheme = 'background=E5E4E2&color=1C212C'; } else if (spend >= 50000) { tierBadge = `<span class="badge-gold"><i class="bi bi-star-fill me-1"></i> GOLD</span>`; avatarTheme = 'background=FFF8E5&color=FFB547'; } else if (spend >= 10000) { tierBadge = `<span class="badge-silver"><i class="bi bi-award-fill me-1"></i> SILVER</span>`; avatarTheme = 'background=F8F9FA&color=8B949E'; } else { tierBadge = `<span class="badge-standard"><i class="bi bi-person-badge me-1"></i> STANDARD</span>`; }
+                        tbody.innerHTML += `<tr><td><div class="d-flex align-items-center"><img src="https://ui-avatars.com/api/?name=${client.customer_name}&${avatarTheme}&bold=true" class="rounded-circle me-3 shadow-sm" width="40"><span class="fw-bold text-dark">${client.customer_name}</span></div></td><td>${tierBadge}</td><td class="text-center"><span class="badge bg-light text-dark border px-3 py-2 rounded-pill">${client.total_orders} orders</span></td><td class="fw-bold text-success">₱${spend.toLocaleString('en-US', {minimumFractionDigits: 2})}</td><td>${dateStr}</td></tr>`;
+                    });
+                }
+            });
+
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            document.querySelectorAll('#customers-tbody tr').forEach(row => row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none');
+        });
+    });
+</script>
+</body>
+</html>

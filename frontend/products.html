@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Products | Celesté & Co.</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="js/api.js"></script>
+    <script>
+        Auth.requireLogin();
+        const currentUser = Auth.getUser();
+        if (currentUser.role !== 'Superadmin') window.location.replace('supervisor_products.html');
+        let globalProducts = [];
+    </script>
+    <style>
+        :root { --dark-sidebar: #0B0E14; --bg-body: #F4F7FE; }
+        body { background-color: var(--bg-body); font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        .sidebar { width: 260px; height: 100vh; background: var(--dark-sidebar); position: fixed; padding: 25px; color: white; z-index: 1000; }
+        .sidebar .nav-link { color: #8B949E; padding: 12px; border-radius: 10px; margin-bottom: 8px; transition: 0.2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #1C212C; color: #FFFFFF; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .table-card { background: white; border-radius: 20px; border: none; padding: 25px; }
+        .table-custom thead { color: #A3AED0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .table-custom tbody { font-size: 14px; font-weight: 600; color: #2B3674; }
+        .badge-instock { background: #E2FBF0; color: #05CD99; padding: 6px 12px; border-radius: 8px; font-weight: bold; }
+        .badge-lowstock { background: #FFF8E5; color: #FFB547; padding: 6px 12px; border-radius: 8px; font-weight: bold; }
+        .badge-outstock { background: #FFEAF1; color: #EE5D50; padding: 6px 12px; border-radius: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h4 class="fw-bold mb-5">CELESTÉ & CO.</h4>
+    <nav class="nav flex-column">
+        <a class="nav-link" href="dashboard.html"><i class="bi bi-grid-fill me-3"></i> Dashboard</a>
+        <a class="nav-link" href="orders.html"><i class="bi bi-cart-fill me-3"></i> Orders & POS</a>
+        <a class="nav-link" href="customers.html"><i class="bi bi-star-fill me-3"></i> VIP Customers</a>
+        <a class="nav-link active" href="products.html"><i class="bi bi-bag-fill me-3"></i> Products</a>
+        <a class="nav-link" href="warehouses.html"><i class="bi bi-buildings-fill me-3"></i> Warehouse</a>
+        <a class="nav-link" href="supervisors.html"><i class="bi bi-people-fill me-3"></i> Supervisors</a>
+    </nav>
+    <div class="position-absolute bottom-0 mb-4" style="width: 210px;">
+        <a href="#" onclick="performLogout(event)" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-3"></i> Log out</a>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark">Global Inventory Management</h3>
+        <div class="d-flex align-items-center bg-white p-2 px-3 rounded-pill shadow-sm">
+            <span class="fw-bold me-2" style="color: #2B3674;" id="display-name">Loading...</span>
+            <img id="display-avatar" src="" width="35" class="rounded-circle">
+        </div>
+    </div>
+
+    <div id="page-alert" class="alert d-none shadow-sm rounded-3 border-0 mb-4"></div>
+
+    <div class="table-card shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold" style="color: #2B3674;">All Products</h5>
+            <button class="btn text-white fw-bold px-4 rounded-pill shadow-sm" style="background-color: #4318FF;" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="bi bi-plus-lg me-2"></i> Add Product
+            </button>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle">
+                <thead><tr><th>Product Name</th><th>Category</th><th>Cost</th><th>Selling Price</th><th>Stock</th><th>Location</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="products-tbody"><tr><td colspan="8" class="text-center py-5 text-muted">Loading inventory...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow" style="border-radius: 20px;">
+        <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold" style="color: #2B3674;">Add New Product</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body p-4">
+            <form id="addForm">
+                <div class="mb-3"><label class="form-label text-muted small fw-bold">Name</label><input type="text" id="add_name" class="form-control rounded-3" required></div>
+                <div class="mb-3"><label class="form-label text-muted small fw-bold">Category</label><select id="add_category" class="form-select rounded-3" required><option>Neckwear</option><option>Finger Ring</option><option>Wristwear</option><option>Earwear</option></select></div>
+                <div class="row mb-3"><div class="col-6"><label class="form-label text-muted small fw-bold">Cost</label><input type="number" step="0.01" id="add_cost" class="form-control rounded-3" required></div><div class="col-6"><label class="form-label text-muted small fw-bold">Selling Price</label><input type="number" step="0.01" id="add_price" class="form-control rounded-3" required></div></div>
+                <div class="row mb-4"><div class="col-6"><label class="form-label text-muted small fw-bold">Initial Stock</label><input type="number" id="add_qty" class="form-control rounded-3" required></div><div class="col-6"><label class="form-label text-muted small fw-bold">Warehouse</label><select id="add_warehouse" class="form-select rounded-3" required></select></div></div>
+                <button type="submit" id="addBtn" class="btn text-white w-100 fw-bold rounded-pill py-2" style="background-color: #4318FF;">Save Product</button>
+            </form>
+        </div>
+    </div></div>
+</div>
+
+<div class="modal fade" id="editProductModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow" style="border-radius: 20px;">
+        <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold" style="color: #2B3674;">Edit Product</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body p-4">
+            <form id="editForm">
+                <input type="hidden" id="edit_id">
+                <div class="mb-3"><label class="form-label text-muted small fw-bold">Name</label><input type="text" id="edit_name" class="form-control rounded-3" required></div>
+                <div class="mb-3"><label class="form-label text-muted small fw-bold">Category</label><select id="edit_category" class="form-select rounded-3" required><option>Neckwear</option><option>Finger Ring</option><option>Wristwear</option><option>Earwear</option></select></div>
+                <div class="row mb-3"><div class="col-6"><label class="form-label text-muted small fw-bold">Cost</label><input type="number" step="0.01" id="edit_cost" class="form-control rounded-3" required></div><div class="col-6"><label class="form-label text-muted small fw-bold">Selling Price</label><input type="number" step="0.01" id="edit_price" class="form-control rounded-3" required></div></div>
+                <div class="row mb-4"><div class="col-6"><label class="form-label text-muted small fw-bold">Stock</label><input type="number" id="edit_qty" class="form-control rounded-3" required></div><div class="col-6"><label class="form-label text-muted small fw-bold">Warehouse</label><select id="edit_warehouse" class="form-select rounded-3" required></select></div></div>
+                <button type="submit" id="editBtn" class="btn text-white w-100 fw-bold rounded-pill py-2" style="background-color: #4318FF;">Update Product</button>
+            </form>
+        </div>
+    </div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('display-name').innerText = currentUser.fullname;
+        document.getElementById('display-avatar').src = `https://ui-avatars.com/api/?name=${currentUser.fullname}&background=4318FF&color=fff`;
+        loadProducts();
+
+        document.getElementById('addForm').addEventListener('submit', function(e) {
+            e.preventDefault(); const btn = document.getElementById('addBtn'); btn.innerHTML = "Processing..."; btn.disabled = true;
+            fetch(`${API_BASE_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: currentUser.id, product_name: document.getElementById('add_name').value, category: document.getElementById('add_category').value, warehouse_id: document.getElementById('add_warehouse').value, purchase_price: document.getElementById('add_cost').value, sale_price: document.getElementById('add_price').value, stock_quantity: document.getElementById('add_qty').value }) })
+            .then(res => res.json()).then(data => { if(data.success) { bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide(); document.getElementById('addForm').reset(); showAlert("Product added!", "success"); loadProducts(); } btn.innerHTML = "Save Product"; btn.disabled = false; });
+        });
+
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault(); const btn = document.getElementById('editBtn'); btn.innerHTML = "Saving..."; btn.disabled = true;
+            fetch(`${API_BASE_URL}/products/${document.getElementById('edit_id').value}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: currentUser.id, product_name: document.getElementById('edit_name').value, category: document.getElementById('edit_category').value, warehouse_id: document.getElementById('edit_warehouse').value, purchase_price: document.getElementById('edit_cost').value, sale_price: document.getElementById('edit_price').value, stock_quantity: document.getElementById('edit_qty').value }) })
+            .then(res => res.json()).then(data => { if(data.success) { bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide(); showAlert("Product updated.", "success"); loadProducts(); } btn.innerHTML = "Update Product"; btn.disabled = false; });
+        });
+    });
+
+    function loadProducts() {
+        fetch(`${API_BASE_URL}/products?role=Superadmin`)
+            .then(res => res.json()).then(res => {
+                if(res.success) {
+                    globalProducts = res.data;
+                    if(res.warehouses) { let whHtml = res.warehouses.map(w => `<option value="${w.id}">${w.warehouse_name}</option>`).join(''); document.getElementById('add_warehouse').innerHTML = whHtml; document.getElementById('edit_warehouse').innerHTML = whHtml; }
+                    const tbody = document.getElementById('products-tbody'); tbody.innerHTML = '';
+                    if(globalProducts.length === 0) { tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No products found.</td></tr>`; return; }
+                    globalProducts.forEach(p => {
+                        let stockBadge = p.stock_quantity > 20 ? `<span class="badge-instock">In Stock</span>` : p.stock_quantity > 0 ? `<span class="badge-lowstock">Low Stock</span>` : `<span class="badge-outstock">Out of Stock</span>`;
+                        tbody.innerHTML += `<tr><td><div class="d-flex align-items-center"><div class="bg-light rounded p-2 me-3 text-primary"><i class="bi bi-box-fill"></i></div><div><span class="fw-bold text-dark d-block">${p.product_name}</span><small class="text-muted" style="font-size: 0.7rem;">SKU: ${p.sku}</small></div></div></td><td><span class="text-muted">${p.category}</span></td><td>₱${parseFloat(p.purchase_price).toLocaleString('en-US')}</td><td>₱${parseFloat(p.sale_price).toLocaleString('en-US')}</td><td>${p.stock_quantity} pcs</td><td><span class="badge bg-light text-dark border">${p.warehouse_name || 'Unassigned'}</span></td><td>${stockBadge}</td><td class="text-end"><button class="btn btn-sm btn-light border text-primary me-2" onclick="openEditModal(${p.id})"><i class="bi bi-pencil-fill"></i></button><button class="btn btn-sm btn-light border text-danger" onclick="deleteProduct(${p.id}, '${p.product_name}')"><i class="bi bi-trash-fill"></i></button></td></tr>`;
+                    });
+                }
+            });
+    }
+
+    function openEditModal(id) { const p = globalProducts.find(prod => prod.id === id); if(p) { document.getElementById('edit_id').value = p.id; document.getElementById('edit_name').value = p.product_name; document.getElementById('edit_category').value = p.category; document.getElementById('edit_cost').value = p.purchase_price; document.getElementById('edit_price').value = p.sale_price; document.getElementById('edit_qty').value = p.stock_quantity; document.getElementById('edit_warehouse').value = p.warehouse_id; new bootstrap.Modal(document.getElementById('editProductModal')).show(); } }
+    function deleteProduct(id, name) { if(confirm(`Delete ${name}?`)) { fetch(`${API_BASE_URL}/products/${id}?user_id=${currentUser.id}`, { method: 'DELETE' }).then(res => res.json()).then(data => { if(data.success) { showAlert("Product deleted.", "success"); loadProducts(); } }); } }
+    function showAlert(msg, type) { const box = document.getElementById('page-alert'); box.className = `alert alert-${type} alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4`; box.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i> ${msg} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`; }
+</script>
+</body>
+</html>
