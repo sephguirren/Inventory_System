@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Celesté & Co. | Inventory Dashboard</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script src="js/api.js"></script>
@@ -16,208 +17,312 @@
         // BOUNCER: Only Superadmins allowed on this dashboard
         if (currentUser.role !== 'Superadmin') window.location.replace('supervisor_dashboard.html');
     </script>
-    
+
     <style>
         :root {
             --dark-sidebar: #0B0E14;
             --bg-body: #F4F7FE;
         }
-        body { background-color: var(--bg-body); font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
-        
-        .sidebar { width: 260px; height: 100vh; background: var(--dark-sidebar); position: fixed; padding: 25px; color: white; z-index: 1000; }
-        .sidebar .nav-link { color: #8B949E; padding: 12px; border-radius: 10px; margin-bottom: 8px; transition: 0.2s;}
-        .sidebar .nav-link.active, .sidebar .nav-link:hover { background: #1C212C; color: #FFFFFF; }
-        
-        .main-content { margin-left: 260px; padding: 30px; }
-        
-        .card-stat { border: none; border-radius: 20px; padding: 20px; background: white; }
-        .icon-circle { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        
-        .c-blue { background: #E9EFFF; color: #4318FF; }
-        .c-red { background: #FFEAF1; color: #EE5D50; }
-        .c-green { background: #E2FBF0; color: #05CD99; }
-        .c-yellow { background: #FFF8E5; color: #FFB547; }
 
-        .warehouse-card { background: white; border-radius: 20px; padding: 25px; border: none; height: 100%; }
-        .table-custom thead { color: #A3AED0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-        .table-custom tbody { font-size: 14px; font-weight: 600; color: #2B3674; }
-        
-        .history-item { border-left: 2px solid #E9EFFF; padding-left: 15px; position: relative; margin-bottom: 20px; }
-        .history-item::before { content: ''; position: absolute; left: -6px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background-color: #4318FF; }
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: var(--dark-sidebar);
+            position: fixed;
+            padding: 25px;
+            color: white;
+            z-index: 1000;
+        }
+
+        .sidebar .nav-link {
+            color: #8B949E;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: 0.2s;
+        }
+
+        .sidebar .nav-link.active,
+        .sidebar .nav-link:hover {
+            background: #1C212C;
+            color: #FFFFFF;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        .card-stat {
+            border: none;
+            border-radius: 20px;
+            padding: 20px;
+            background: white;
+        }
+
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .c-blue {
+            background: #E9EFFF;
+            color: #4318FF;
+        }
+
+        .c-red {
+            background: #FFEAF1;
+            color: #EE5D50;
+        }
+
+        .c-green {
+            background: #E2FBF0;
+            color: #05CD99;
+        }
+
+        .c-yellow {
+            background: #FFF8E5;
+            color: #FFB547;
+        }
+
+        .warehouse-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            border: none;
+            height: 100%;
+        }
+
+        .table-custom thead {
+            color: #A3AED0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table-custom tbody {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2B3674;
+        }
+
+        .history-item {
+            border-left: 2px solid #E9EFFF;
+            padding-left: 15px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .history-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 2px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #4318FF;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="sidebar">
-    <h4 class="fw-bold mb-5">CELESTÉ & CO.</h4>
-    <nav class="nav flex-column">
-        <a class="nav-link active" href="dashboard.html"><i class="bi bi-grid-fill me-3"></i> Dashboard</a>
-        <a class="nav-link" href="orders.html"><i class="bi bi-cart-fill me-3"></i> Orders & POS</a>
-        <a class="nav-link" href="customers.html"><i class="bi bi-star-fill me-3"></i> VIP Customers</a>
-        <a class="nav-link" href="products.html"><i class="bi bi-bag-fill me-3"></i> Products</a>
-        <a class="nav-link" href="warehouses.html"><i class="bi bi-buildings-fill me-3"></i> Warehouse</a>
-        <a class="nav-link" href="supervisors.html"><i class="bi bi-people-fill me-3"></i> Supervisors</a>
-    </nav>
-    <div class="position-absolute bottom-0 mb-4" style="width: 210px;">
-        <a href="#" onclick="performLogout(event)" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-3"></i> Log out</a>
-    </div>
-</div>
-
-<div class="main-content">
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-dark">Inventory Dashboard</h3>
-        
-        <div class="d-flex align-items-center">
-            <div class="position-relative me-4" style="cursor: pointer;" data-bs-toggle="offcanvas" data-bs-target="#notificationPanel">
-                <i class="bi bi-bell-fill" style="font-size: 1.2rem; color: #A3AED0;"></i>
-                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-white rounded-circle"></span>
-            </div>
-            
-            <div class="d-flex align-items-center bg-white p-2 px-3 rounded-pill shadow-sm">
-                <span class="fw-bold me-2" style="color: #2B3674;" id="display-name">Loading...</span>
-                <img id="display-avatar" src="" width="35" class="rounded-circle">
-            </div>
+    <div class="sidebar">
+        <h4 class="fw-bold mb-5">CELESTÉ & CO.</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="dashboard.html"><i class="bi bi-grid-fill me-3"></i> Dashboard</a>
+            <a class="nav-link" href="orders.html"><i class="bi bi-cart-fill me-3"></i> Orders & POS</a>
+            <a class="nav-link" href="customers.html"><i class="bi bi-star-fill me-3"></i> VIP Customers</a>
+            <a class="nav-link" href="products.html"><i class="bi bi-bag-fill me-3"></i> Products</a>
+            <a class="nav-link" href="warehouses.html"><i class="bi bi-buildings-fill me-3"></i> Warehouse</a>
+            <a class="nav-link" href="supervisors.html"><i class="bi bi-people-fill me-3"></i> Supervisors</a>
+        </nav>
+        <div class="position-absolute bottom-0 mb-4" style="width: 210px;">
+            <a href="#" onclick="performLogout(event)" class="nav-link text-danger"><i
+                    class="bi bi-box-arrow-right me-3"></i> Log out</a>
         </div>
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card-stat d-flex align-items-center shadow-sm">
-                <div class="icon-circle c-blue me-3"><i class="bi bi-bar-chart-fill"></i></div>
-                <div><small class="text-muted">Total Sales</small><h4 class="fw-bold mb-0" id="stat-sales">₱0.00</h4></div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card-stat d-flex align-items-center shadow-sm">
-                <div class="icon-circle c-red me-3"><i class="bi bi-cart-fill"></i></div>
-                <div><small class="text-muted">Total Cost</small><h4 class="fw-bold mb-0" id="stat-cost">₱0.00</h4></div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card-stat d-flex align-items-center shadow-sm">
-                <div class="icon-circle c-green me-3"><i class="bi bi-check-circle-fill"></i></div>
-                <div><small class="text-muted">Products Sold</small><h4 class="fw-bold mb-0" id="stat-sold">0</h4></div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card-stat d-flex align-items-center shadow-sm">
-                <div class="icon-circle c-yellow me-3"><i class="bi bi-boxes"></i></div>
-                <div><small class="text-muted">Stock on Hand</small><h4 class="fw-bold mb-0" id="stat-stock">0</h4></div>
-            </div>
-        </div>
-    </div>
+    <div class="main-content">
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                <h6 class="fw-bold" style="color: #2B3674;">Total Expenses & Profit</h6>
-                <p class="text-muted small mb-4">Real-time revenue tracked per month.</p>
-                <div style="height: 250px;"><canvas id="expensesProfitChart"></canvas></div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-4 rounded-4 h-100 d-flex flex-column align-items-center">
-                <h6 class="fw-bold w-100 text-center mb-3" style="color: #2B3674;">Sales by Status</h6>
-                <div style="height: 200px; width: 100%;"><canvas id="salesChart"></canvas></div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark">Inventory Dashboard</h3>
+
+            <div class="d-flex align-items-center">
+                <div class="position-relative me-4" style="cursor: pointer;" data-bs-toggle="offcanvas"
+                    data-bs-target="#notificationPanel">
+                    <i class="bi bi-bell-fill" style="font-size: 1.2rem; color: #A3AED0;"></i>
+                    <span
+                        class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-white rounded-circle"></span>
+                </div>
+
+                <div class="d-flex align-items-center bg-white p-2 px-3 rounded-pill shadow-sm">
+                    <span class="fw-bold me-2" style="color: #2B3674;" id="display-name">Loading...</span>
+                    <img id="display-avatar" src="" width="35" class="rounded-circle">
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-4 rounded-4 h-100 overflow-auto" style="max-height: 350px;">
-                <h6 class="fw-bold mb-4" style="color: #2B3674;">Recent History</h6>
-                <div id="history-container">
-                    <p class="text-muted small">Loading activity...</p>
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card-stat d-flex align-items-center shadow-sm">
+                    <div class="icon-circle c-blue me-3"><i class="bi bi-bar-chart-fill"></i></div>
+                    <div><small class="text-muted">Total Sales</small>
+                        <h4 class="fw-bold mb-0" id="stat-sales">₱0.00</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card-stat d-flex align-items-center shadow-sm">
+                    <div class="icon-circle c-red me-3"><i class="bi bi-cart-fill"></i></div>
+                    <div><small class="text-muted">Total Cost</small>
+                        <h4 class="fw-bold mb-0" id="stat-cost">₱0.00</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card-stat d-flex align-items-center shadow-sm">
+                    <div class="icon-circle c-green me-3"><i class="bi bi-check-circle-fill"></i></div>
+                    <div><small class="text-muted">Products Sold</small>
+                        <h4 class="fw-bold mb-0" id="stat-sold">0</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card-stat d-flex align-items-center shadow-sm">
+                    <div class="icon-circle c-yellow me-3"><i class="bi bi-boxes"></i></div>
+                    <div><small class="text-muted">Stock on Hand</small>
+                        <h4 class="fw-bold mb-0" id="stat-stock">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
+                    <h6 class="fw-bold" style="color: #2B3674;">Total Expenses & Profit</h6>
+                    <p class="text-muted small mb-4">Real-time revenue tracked per month.</p>
+                    <div style="height: 250px;"><canvas id="expensesProfitChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm p-4 rounded-4 h-100 d-flex flex-column align-items-center">
+                    <h6 class="fw-bold w-100 text-center mb-3" style="color: #2B3674;">Sales by Status</h6>
+                    <div style="height: 200px; width: 100%;"><canvas id="salesChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm p-4 rounded-4 h-100 overflow-auto" style="max-height: 350px;">
+                    <h6 class="fw-bold mb-4" style="color: #2B3674;">Recent History</h6>
+                    <div id="history-container">
+                        <p class="text-muted small">Loading activity...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="warehouse-card shadow-sm h-100 overflow-auto" style="max-height: 450px;">
+                    <h6 class="text-muted fw-bold mb-4 text-center">Company Warehouses</h6>
+                    <div id="warehouses-container">
+                        <p class="text-muted text-center small mt-4">Loading facilities...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm p-4 rounded-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold" style="color: #2B3674;">Active Officials</h5>
+                        <a href="supervisors.html" class="btn btn-light btn-sm rounded-pill px-3">See all</a>
+                    </div>
+                    <table class="table table-custom align-middle">
+                        <thead>
+                            <tr>
+                                <th>Official Name</th>
+                                <th>Role</th>
+                                <th>Warehouse</th>
+                                <th>Last Active</th>
+                            </tr>
+                        </thead>
+                        <tbody id="officials-tbody">
+                            <tr>
+                                <td colspan="4" class="text-muted text-center py-3">Loading officials...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="warehouse-card shadow-sm h-100 overflow-auto" style="max-height: 450px;">
-                <h6 class="text-muted fw-bold mb-4 text-center">Company Warehouses</h6>
-                <div id="warehouses-container">
-                    <p class="text-muted text-center small mt-4">Loading facilities...</p>
-                </div>
-            </div>
+    <div class="offcanvas offcanvas-end shadow" tabindex="-1" id="notificationPanel">
+        <div class="offcanvas-header border-bottom bg-light">
+            <h5 class="offcanvas-title fw-bold" style="color: #2B3674;"><i class="bi bi-activity me-2"></i> Supervisor
+                Activity</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
-
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm p-4 rounded-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold" style="color: #2B3674;">Active Officials</h5>
-                    <a href="supervisors.html" class="btn btn-light btn-sm rounded-pill px-3">See all</a>
-                </div>
-                <table class="table table-custom align-middle">
-                    <thead>
-                        <tr>
-                            <th>Official Name</th>
-                            <th>Role</th>
-                            <th>Warehouse</th>
-                            <th>Last Active</th>
-                        </tr>
-                    </thead>
-                    <tbody id="officials-tbody">
-                        <tr><td colspan="4" class="text-muted text-center py-3">Loading officials...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="offcanvas-body">
+            <p class="text-muted small mb-4">Real-time log of supervisor actions across all zones.</p>
+            <div id="notifications-container"></div>
         </div>
     </div>
-</div>
 
-<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="notificationPanel">
-    <div class="offcanvas-header border-bottom bg-light">
-        <h5 class="offcanvas-title fw-bold" style="color: #2B3674;"><i class="bi bi-activity me-2"></i> Supervisor Activity</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-        <p class="text-muted small mb-4">Real-time log of supervisor actions across all zones.</p>
-        <div id="notifications-container"></div>
-    </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        
-        // 1. Setup Profile
-        document.getElementById('display-name').innerText = currentUser.fullname;
-        document.getElementById('display-avatar').src = `https://ui-avatars.com/api/?name=${currentUser.fullname}&background=4318FF&color=fff`;
+            // 1. Setup Profile
+            document.getElementById('display-name').innerText = currentUser.fullname;
+            document.getElementById('display-avatar').src = `https://ui-avatars.com/api/?name=${currentUser.fullname}&background=4318FF&color=fff`;
 
-        // 2. Fetch Data from API
-        fetch(`${API_BASE_URL}/dashboard?role=${currentUser.role}&warehouse_id=${currentUser.warehouse_id}`)
-            .then(res => res.json())
-            .then(res => {
-                if(res.success) {
-                    const data = res.data;
+            // 2. Fetch Data from API
+            fetch(`${API_BASE_URL}/dashboard?role=${currentUser.role}&warehouse_id=${currentUser.warehouse_id}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        const data = res.data;
 
-                    // Update Statistic Cards
-                    document.getElementById('stat-sales').innerText = '₱' + parseFloat(data.total_sales).toLocaleString('en-US', {minimumFractionDigits: 2});
-                    document.getElementById('stat-cost').innerText = '₱' + parseFloat(data.total_cost).toLocaleString('en-US', {minimumFractionDigits: 2});
-                    document.getElementById('stat-sold').innerText = data.total_sold;
-                    document.getElementById('stat-stock').innerText = parseFloat(data.total_stock).toLocaleString('en-US');
+                        // Update Statistic Cards
+                        document.getElementById('stat-sales').innerText = '₱' + parseFloat(data.total_sales).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                        document.getElementById('stat-cost').innerText = '₱' + parseFloat(data.total_cost).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                        document.getElementById('stat-sold').innerText = data.total_sold;
+                        document.getElementById('stat-stock').innerText = parseFloat(data.total_stock).toLocaleString('en-US');
 
-                    // History & Notifications (Limit history box to 4 like the original design)
-                    const historyBox = document.getElementById('history-container');
-                    const notifyBox = document.getElementById('notifications-container');
-                    historyBox.innerHTML = ''; notifyBox.innerHTML = '';
-                    
-                    if(data.recent_logs && data.recent_logs.length > 0) {
-                        data.recent_logs.forEach((log, index) => {
-                            if(index < 4) {
-                                historyBox.innerHTML += `
+                        // History & Notifications (Limit history box to 4 like the original design)
+                        const historyBox = document.getElementById('history-container');
+                        const notifyBox = document.getElementById('notifications-container');
+                        historyBox.innerHTML = ''; notifyBox.innerHTML = '';
+
+                        if (data.recent_logs && data.recent_logs.length > 0) {
+                            data.recent_logs.forEach((log, index) => {
+                                if (index < 4) {
+                                    historyBox.innerHTML += `
                                 <div class="history-item">
                                     <p class="mb-0 fw-bold text-dark" style="font-size: 0.85rem;">${log.fullname}</p>
                                     <p class="text-muted mb-0" style="font-size: 0.75rem;">${log.action_description}</p>
                                     <small class="text-muted" style="font-size: 0.65rem;">${log.time_ago}</small>
                                 </div>`;
-                            }
-                            // Offcanvas Notifications get all 10
-                            notifyBox.innerHTML += `
+                                }
+                                // Offcanvas Notifications get all 10
+                                notifyBox.innerHTML += `
                             <div class="d-flex align-items-start mb-3 border-bottom pb-3">
                                 <div class="icon-circle c-blue me-3" style="width:40px; height:40px; font-size:16px;">
                                     <i class="bi bi-info-circle-fill"></i>
@@ -228,18 +333,18 @@
                                     <small class="text-muted" style="font-size: 11px;">${log.time_ago}</small>
                                 </div>
                             </div>`;
-                        });
-                    } else {
-                        historyBox.innerHTML = '<p class="text-muted small">No recent activity.</p>';
-                        notifyBox.innerHTML = '<p class="text-center text-muted mt-5">No notifications yet.</p>';
-                    }
+                            });
+                        } else {
+                            historyBox.innerHTML = '<p class="text-muted small">No recent activity.</p>';
+                            notifyBox.innerHTML = '<p class="text-center text-muted mt-5">No notifications yet.</p>';
+                        }
 
-                    // Company Warehouses Panel
-                    const whBox = document.getElementById('warehouses-container');
-                    whBox.innerHTML = '';
-                    if(data.warehouses && data.warehouses.length > 0) {
-                        data.warehouses.forEach(wh => {
-                            whBox.innerHTML += `
+                        // Company Warehouses Panel
+                        const whBox = document.getElementById('warehouses-container');
+                        whBox.innerHTML = '';
+                        if (data.warehouses && data.warehouses.length > 0) {
+                            data.warehouses.forEach(wh => {
+                                whBox.innerHTML += `
                             <div class="p-3 rounded-4 mb-3" style="background: #F4F7FE;">
                                 <div class="d-flex align-items-center mb-2">
                                     <div class="bg-white p-2 rounded-circle shadow-sm me-3">
@@ -254,60 +359,95 @@
                                     <small class="text-muted">Managed by: <span class="fw-bold text-dark">${wh.manager_name || 'Unassigned'}</span></small>
                                 </div>
                             </div>`;
-                        });
-                    } else {
-                        whBox.innerHTML = '<p class="text-muted text-center small mt-4">No facilities registered.</p>';
-                    }
+                            });
+                        } else {
+                            whBox.innerHTML = '<p class="text-muted text-center small mt-4">No facilities registered.</p>';
+                        }
 
-                    // Active Officials Table
-                    const offBox = document.getElementById('officials-tbody');
-                    offBox.innerHTML = '';
-                    if(data.officials) {
-                        data.officials.forEach(off => {
-                            let activeHtml = off.last_active_fmt ? 
-                                `<small class="text-muted fw-semibold"><i class="bi bi-clock me-1"></i> ${off.last_active_fmt}</small>` : 
-                                `<span class="badge bg-secondary">Never logged in</span>`;
-                                
-                            offBox.innerHTML += `
+                        // Active Officials Table
+                        const offBox = document.getElementById('officials-tbody');
+                        offBox.innerHTML = '';
+                        if (data.officials) {
+                            data.officials.forEach(off => {
+                                let activeHtml = off.last_active_fmt ?
+                                    `<small class="text-muted fw-semibold"><i class="bi bi-clock me-1"></i> ${off.last_active_fmt}</small>` :
+                                    `<span class="badge bg-secondary">Never logged in</span>`;
+
+                                offBox.innerHTML += `
                             <tr>
                                 <td>${off.fullname}</td>
                                 <td><span class="text-muted">${off.role}</span></td>
                                 <td><span class="badge bg-light text-dark p-2">${off.assigned_warehouse || 'All Zones'}</span></td>
                                 <td>${activeHtml}</td>
                             </tr>`;
-                        });
-                    }
+                            });
+                        }
 
-                    // Doughnut Chart
-                    if (data.donut_data) {
-                        const dLabels = data.donut_data.map(d => d.status);
-                        const dValues = data.donut_data.map(d => d.count);
-                        new Chart(document.getElementById('salesChart').getContext('2d'), {
-                            type: 'doughnut',
+                        // Doughnut Chart
+                        if (data.donut_data) {
+                            const dLabels = data.donut_data.map(d => d.status);
+                            const dValues = data.donut_data.map(d => d.count);
+                            new Chart(document.getElementById('salesChart').getContext('2d'), {
+                                type: 'doughnut',
+                                data: {
+                                    labels: dLabels,
+                                    datasets: [{ data: dValues, backgroundColor: ['#05CD99', '#FFB547', '#EE5D50', '#4318FF'], borderWidth: 0 }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 10 } } } } }
+                            });
+                        }
+
+                        // Line Chart
+                        new Chart(document.getElementById('expensesProfitChart').getContext('2d'), {
+                            type: 'line',
                             data: {
-                                labels: dLabels,
-                                datasets: [{ data: dValues, backgroundColor: ['#05CD99', '#FFB547', '#EE5D50', '#4318FF'], borderWidth: 0 }]
+                                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
+                                datasets: [
+                                    { label: 'Revenue', data: [0, 5000, 15000, 12000, 18000, data.total_sales || 0], borderColor: '#4318FF', backgroundColor: 'rgba(67, 24, 255, 0.1)', fill: true, tension: 0.4 },
+                                    { label: 'Est. Expenses', data: [0, 2000, 6000, 4000, 7000, (data.total_sales * 0.4) || 0], borderColor: '#EE5D50', backgroundColor: 'transparent', fill: false, tension: 0.4 }
+                                ]
                             },
-                            options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 10 } } } } }
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { borderDash: [5, 5] }, beginAtZero: true } } }
                         });
                     }
+                });
 
-                    // Line Chart
-                    new Chart(document.getElementById('expensesProfitChart').getContext('2d'), {
-                        type: 'line',
-                        data: {
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
-                            datasets: [
-                                { label: 'Revenue', data: [0, 5000, 15000, 12000, 18000, data.total_sales || 0], borderColor: '#4318FF', backgroundColor: 'rgba(67, 24, 255, 0.1)', fill: true, tension: 0.4 },
-                                { label: 'Est. Expenses', data: [0, 2000, 6000, 4000, 7000, (data.total_sales * 0.4) || 0], borderColor: '#EE5D50', backgroundColor: 'transparent', fill: false, tension: 0.4 }
-                            ]
-                        },
-                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { borderDash: [5, 5] }, beginAtZero: true } } }
-                    });
-                }
-            });
-    });
-</script>
+            // 3. Fetch Products for Low Stock Alert
+            fetch(`${API_BASE_URL}/products?role=${currentUser.role}&warehouse_id=${currentUser.warehouse_id}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        const lowStockProducts = res.data.filter(p => p.stock_quantity > 0 && p.stock_quantity <= 10);
+                        if (lowStockProducts.length > 0) {
+                            const toastBody = document.getElementById('lowStockToastBody');
+                            if (lowStockProducts.length === 1) {
+                                toastBody.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Low Stock Alert:</strong> ${lowStockProducts[0].product_name} only has ${lowStockProducts[0].stock_quantity} left.`;
+                            } else {
+                                toastBody.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Low Stock Alert:</strong> ${lowStockProducts.length} items are running critically low (10 or fewer).`;
+                            }
+                            const toastEl = document.getElementById('lowStockToast');
+                            const toast = new bootstrap.Toast(toastEl, { autohide: false });
+                            toast.show();
+                        }
+                    }
+                });
+        });
+    </script>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055; margin-top: 10px;">
+        <div id="lowStockToast" class="toast align-items-center text-white bg-danger border-0 shadow-lg" role="alert"
+            aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="lowStockToastBody">
+                    <!-- Message injected by JS -->
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 
 </body>
+
 </html>
