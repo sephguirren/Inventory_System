@@ -12,8 +12,8 @@ The **Celeste Inventory System** is a robust, web-based full-stack inventory and
 * **Smart Orders & Point-of-Sale (POS):** Track sales with customizable statuses (Pending, Completed, Cancelled). When an order is marked as "Completed", the system automatically calculates revenue and smartly deducts the exact product quantity from the assigned warehouse's inventory. Cancellations will safely restore the stock.
 * **Comprehensive Audit Trail:** The system heavily utilizes an activity logging mechanism to securely record user actions behind the scenes, such as adding products, removing warehouses, updating order statuses, or changing user roles—creating a secure paper trail of accountability.
 * **Secure Authentication:** Accounts are protected using secure, modern password hashing standards generated via Werkzeug security wrappers.
-* **The VIP Customers:**feature allows the system to identify loyal or high-spending customers and provide them with special privileges such as discounts, priority service, and exclusive promotions. It helps businesses retain valuable customers and enhance customer satisfaction.
-* **The E-Receipt:**feature automatically generates and stores digital receipts for transactions, allowing customers and administrators to view, download, or send receipts electronically for record keeping and verification.
+* **The VIP Customers:** feature allows the system to identify loyal or high-spending customers and provide them with special privileges such as discounts, priority service, and exclusive promotions. It helps businesses retain valuable customers and enhance customer satisfaction.
+* **The E-Receipt:** feature automatically generates and stores digital receipts for transactions, allowing customers and administrators to view, download, or send receipts electronically for record keeping and verification.
 
 ## 🛠️ Technology Stack
 * **Backend:** Python 3, Flask
