@@ -22,7 +22,7 @@ The **Celeste Inventory System** is a robust, web-based full-stack inventory and
 * **Security:** Werkzeug password-hashing
 
 ## Teen Tech Group
-* **Leader:** Mark Jooseph Guirren
+* **Leader:** Mark Joseph Guirren
 * **Member:** Arwayne Xyryle Manzano
 * **Member:** Dave Alonzo Padre
 * **Member:** Kenneth Moises
