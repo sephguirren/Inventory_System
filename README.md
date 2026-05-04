@@ -1,36 +1,63 @@
 # Celeste Inventory System
 
-## 📌 Project Overview
-The **Celeste Inventory System** is a robust, web-based full-stack inventory and point-of-sale (POS) management application. Built using Python (Flask) and a MySQL database backend, it allows organizations to manage products, warehouses (zones), sales orders, and personnel across multiple locations effectively. 
+<!-- Optional: Add badges here, e.g., build status, license, python version -->
+![Python](https://img.shields.io/badge/Python-3.x-blue?style=flat-square&logo=python)
+![Flask](https://img.shields.io/badge/Flask-Backend-black?style=flat-square&logo=flask)
+![MySQL](https://img.shields.io/badge/MySQL-Database-blue?style=flat-square&logo=mysql)
 
-## ✨ Key Features
-* **Role-Based Access Control (RBAC):** 
-  * **Superadmin:** Has global access to all facilities, overall statistics, all products, and the ability to manage users (Supervisors) and warehouses.
-  * **Supervisor / Sub-Admin:** Restricted to their specific assigned warehouse/zone. Can manage local stock and process outgoing orders for their location only.
-* **Multi-Warehouse Management:** Easily scale your operations by assigning stock and personnel strictly to specific zones or branches. 
-* **Dynamic Analytics Dashboard:** Provides real-time insights such as total global/local sales, stock on hand, product costs, active users, and activity logs. Integrated with visual data formats like line and doughnut charts.
-* **Smart Orders & Point-of-Sale (POS):** Track sales with customizable statuses (Pending, Completed, Cancelled). When an order is marked as "Completed", the system automatically calculates revenue and smartly deducts the exact product quantity from the assigned warehouse's inventory. Cancellations will safely restore the stock.
-* **Comprehensive Audit Trail:** The system heavily utilizes an activity logging mechanism to securely record user actions behind the scenes, such as adding products, removing warehouses, updating order statuses, or changing user roles—creating a secure paper trail of accountability.
-* **Secure Authentication:** Accounts are protected using secure, modern password hashing standards generated via Werkzeug security wrappers.
-* **The VIP Customers:** feature allows the system to identify loyal or high-spending customers and provide them with special privileges such as discounts, priority service, and exclusive promotions. It helps businesses retain valuable customers and enhance customer satisfaction.
-* **The E-Receipt:** feature automatically generates and stores digital receipts for transactions, allowing customers and administrators to view, download, or send receipts electronically for record keeping and verification.
+> A robust, web-based full-stack inventory and point-of-sale (POS) management application.
 
-## 🛠️ Technology Stack
-* **Backend:** Python 3, Flask
-* **Database:** MySQL relational database (`mysql-connector-python`)
-* **Frontend:** HTML5, CSS3, JavaScript, Jinja2 Templating
-* **Security:** Werkzeug password-hashing
+## Description
 
-## Teen Tech Group
-* **Leader:** Mark Jooseph Guirren
-* **Member:** Arwayne Xyryle Manzano
-* **Member:** Dave Alonzo Padre
-* **Member:** Kenneth Moises
-* **Member:** Lyndolf Raphael Rodriguez 
+The Celeste Inventory System allows organizations to effectively manage products, warehouses (zones), sales orders, and personnel across multiple locations. Built with a Python/Flask backend and a MySQL database, it features dynamic analytics, multi-warehouse scaling, and automated inventory deductions tied directly to an intelligent POS system.
 
-## 🚀 Getting Started (Local Development)
-1. Ensure you have Python 3.x and a local MySQL server (like XAMPP, WAMP, or standalone MySQL) installed.
-2. In your MySQL database, create a database named `celeste_inventory` and import your initial SQL schema.
-3. Install the required Python packages (e.g., `pip install flask mysql-connector-python werkzeug`).
-4. Run `python backend/app.py` or navigate to the backend directory and launch the app using Flask.
-5. Access the app on your local development server (usually `http://127.0.0.1:5000/`) and log in.
+## 🌟 Key Features
+
+*   **Role-Based Access Control (RBAC):** Superadmin global access and restricted, zone-specific Supervisor control.
+*   **Multi-Warehouse Management:** Assign stock and personnel to specific branches or zones.
+*   **Smart POS & Auto-Inventory:** Automatically calculates revenue and deducts precise product quantities upon order completion.
+*   **Dynamic Analytics Dashboard:** Real-time insights (global/local sales, stock on hand) visualized via line and doughnut charts.
+*   **Comprehensive Audit Trail:** Secure, behind-the-scenes activity logging to maintain accountability.
+*   **VIP Customers & E-Receipts:** Identify loyal customers for special privileges and automatically generate digital transaction receipts.
+
+## 🛠 Tech Stack
+
+*   **Backend:** Python 3, Flask
+*   **Database:** MySQL (`mysql-connector-python`)
+*   **Frontend:** HTML5, CSS3, JavaScript, Jinja2 Templating
+*   **Security:** Werkzeug password-hashing
+
+## 🚀 Installation & Setup
+
+### Prerequisites
+*   Python 3.x
+*   Local MySQL server (e.g., XAMPP, WAMP, or standalone)
+
+### Development Setup
+
+```bash
+# 1. Clone the repository
+git clone [https://github.com/sephguirren/Inventory_System.git](https://github.com/sephguirren/Inventory_System.git)
+cd celeste-inventory
+
+# 2. Database Setup
+# Create a database named `celeste_inventory` in MySQL and import your initial SQL schema.
+
+# 3. Install dependencies
+pip install flask mysql-connector-python werkzeug
+
+# 4. Run the application
+python backend/app.py
+```
+
+## 💻 Usage Example
+
+Once the local development server is running, access the app at `http://127.0.0.1:5000/`. Superadmins can view global statistics and manage all users/warehouses, while Supervisors can log in to handle local stock and process outgoing POS orders for their specific branch.
+
+## 🤝 Contributing
+
+1.  Fork it (https://github.com/sephguirren/Inventory_System/fork)
+2.  Create your feature branch (`git checkout -b feature/fooBar`)
+3.  Commit your changes (`git commit -am 'Add some fooBar'`)
+4.  Push to the branch (`git push origin feature/fooBar`)
+5.  Create a new Pull Request
